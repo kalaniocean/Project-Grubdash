@@ -12,14 +12,14 @@ function listOrders(req, res) {
 }
 
 function createOrder(req, res) {
-	const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
+	// const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
 
 	const newOrder = {
 		id: nextId(),
-		deliverTo: deliverTo,
-		mobileNumber: mobileNumber,
-		status: status ? status : "pending",
-		dishes: dishes,
+		deliverTo: res.locals.deliverTo,
+		mobileNumber: res.locals.mobileNumber,
+		status: res.locals.status ? res.locals.status : "pending",
+		dishes: res.locals.dishes,
 	}
 
 	orders.push(newOrder);
@@ -28,7 +28,7 @@ function createOrder(req, res) {
 }
 
 function validateOrder(req, res, next) {
-	const { data: { deliverTo, mobileNumber, dishes } = {} } = req.body;
+	const { data: { deliverTo, mobileNumber, dishes, status, id } = {} } = req.body;
 
 	let message;
 	if(!deliverTo || deliverTo === "")
@@ -52,7 +52,11 @@ function validateOrder(req, res, next) {
 			message: message,
 		});
 	}
-
+	res.locals.deliverTo = deliverTo
+	res.locals.mobileNumber = mobileNumber
+	res.locals.dishes = dishes
+	res.locals.status = status
+	res.locals.id = id
 	next();
 }
 
@@ -76,29 +80,29 @@ function validateOrderId(req, res, next) {
 }
 
 function updateOrder(req, res) {
-	const { data: { deliverTo, mobileNumber, dishes, status } = {} } = req.body;
+	// const { data: { deliverTo, mobileNumber, dishes, status } = {} } = req.body;
 
 	res.locals.order = {
 		id: res.locals.order.id,
-		deliverTo: deliverTo,
-		mobileNumber: mobileNumber,
-		dishes: dishes,
-		status: status,
+		deliverTo: res.locals.deliverTo,
+		mobileNumber: res.locals.mobileNumber,
+		dishes: res.locals.dishes,
+		status: res.locals.status,
 	}
 
 	res.json({ data: res.locals.order });
 }
 
 function validateStatus(req, res, next) {
-	const { orderId } = req.params;
-	const { data: { id, status } = {} } = req.body;
+	// const { orderId } = req.params;
+	// const { data: { status } = {} } = req.body;
 
 	let message;
-	if(id && id !== orderId)
-		message = `Order id does not match route id. Order: ${id}, Route: ${orderId}`
-	else if(!status || status === "" || (status !== "pending" && status !== "preparing" && status !== "out-for-delivery"))
+	if(res.locals.id && res.locals.id !== res.locals.order.id)
+		message = `Order id does not match route id. Order: ${res.locals.id}, Route: ${res.locals.order.id}`
+	else if(!res.locals.status || res.locals.status === "" || (res.locals.status !== "pending" && res.locals.status !== "preparing" && res.locals.status !== "out-for-delivery"))
 		message = "Order must have a status of pending, preparing, out-for-delivery, delivered";
-	else if(status === "delivered")
+	else if(res.locals.status === "delivered")
 		message = "A delivered order cannot be changed"
 
 	if(message) {

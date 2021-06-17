@@ -12,13 +12,13 @@ function listDishes(req, res) {
 }
 
 function createDish(req, res) {
-	const { data: { name, description, price, image_url } = {}} = req.body;
+	// const { data: { name, description, price, image_url } = {}} = req.body;
 	const newDish = {
 		id: nextId(),
-		name: name,
-		description: description,
-		price: price,
-		image_url: image_url,
+		name: res.locals.name,
+		description: res.locals.description,
+		price: res.locals.price,
+		image_url: res.locals.image_url,
 	};
 
 	dishes.push(newDish);
@@ -46,7 +46,10 @@ function validateDishBody(req, res, next) {
 			message: message,
 		});
 	}
-
+	res.locals.name = name
+	res.locals.description = description
+	res.locals.price = price
+	res.locals.image_url = image_url
 	next();
 }
 
